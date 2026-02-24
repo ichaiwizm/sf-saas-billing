@@ -1,104 +1,130 @@
 <template>
-    <section
-        role="dialog"
-        tabindex="-1"
-        class="slds-modal slds-fade-in-open slds-modal_large"
-        aria-modal="true"
-        aria-labelledby="invoice-modal-heading"
-    >
-        <div class="slds-modal__container">
-            <!-- Header -->
-            <div class="slds-modal__header">
-                <lightning-button-icon
-                    icon-name="utility:close"
-                    alternative-text="Close"
-                    variant="bare-inverse"
-                    class="slds-modal__close"
-                    onclick={handleClose}
-                ></lightning-button-icon>
-                <h1 id="invoice-modal-heading" class="slds-modal__title slds-hyphenate">
-                    Invoices — {subscriptionName}
-                </h1>
+    <!-- Backdrop -->
+    <div class="backdrop" onclick={handleClose}></div>
+
+    <!-- Modal -->
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="invoice-modal-heading">
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="modal-header-content">
+                <h1 id="invoice-modal-heading" class="modal-title">Invoices &mdash; {subscriptionName}</h1>
             </div>
-
-            <!-- Body -->
-            <div class="slds-modal__content slds-var-p-around_medium">
-                <!-- Summary -->
-                <div class="slds-grid slds-gutters slds-var-m-bottom_medium">
-                    <div class="slds-col slds-size_1-of-2">
-                        <div class="slds-box slds-theme_shade slds-text-align_center">
-                            <p class="slds-text-title_caps slds-var-m-bottom_xx-small">Total Paid</p>
-                            <p class="slds-text-heading_medium total-paid">
-                                <lightning-formatted-number
-                                    value={totalPaid}
-                                    format-style="currency"
-                                    currency-code="EUR"
-                                ></lightning-formatted-number>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="slds-col slds-size_1-of-2">
-                        <div class="slds-box slds-theme_shade slds-text-align_center">
-                            <p class="slds-text-title_caps slds-var-m-bottom_xx-small">Invoices</p>
-                            <p class="slds-text-heading_medium">{invoiceCount}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Loading -->
-                <template lwc:if={isLoading}>
-                    <lightning-spinner alternative-text="Loading invoices" size="small"></lightning-spinner>
-                </template>
-
-                <!-- Error -->
-                <template lwc:if={error}>
-                    <div class="slds-notify slds-notify_alert slds-alert_error slds-var-m-bottom_medium" role="alert">
-                        <p>{error}</p>
-                    </div>
-                </template>
-
-                <!-- Sync result toast -->
-                <template lwc:if={syncMessage}>
-                    <div class={syncMessageClass} role="alert">
-                        <p>{syncMessage}</p>
-                    </div>
-                </template>
-
-                <!-- Invoice Table -->
-                <template lwc:if={hasInvoices}>
-                    <lightning-datatable
-                        key-field="Id"
-                        data={invoices}
-                        columns={columns}
-                        hide-checkbox-column
-                    ></lightning-datatable>
-                </template>
-
-                <!-- Empty State -->
-                <template lwc:if={noInvoices}>
-                    <div class="slds-text-align_center slds-var-p-around_medium">
-                        <p class="slds-text-color_weak">No invoices found. Try syncing from the billing system.</p>
-                    </div>
-                </template>
-            </div>
-
-            <!-- Footer -->
-            <div class="slds-modal__footer">
-                <lightning-button
-                    label="Sync Invoices"
-                    variant="brand"
-                    icon-name="utility:refresh"
-                    onclick={handleSync}
-                    disabled={isSyncing}
-                ></lightning-button>
-                <lightning-button
-                    label="Close"
-                    variant="neutral"
-                    onclick={handleClose}
-                    class="slds-var-m-left_x-small"
-                ></lightning-button>
-            </div>
+            <button class="btn-close" onclick={handleClose} aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
-    </section>
-    <div class="slds-backdrop slds-backdrop_open" onclick={handleClose}></div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <!-- Summary Cards -->
+            <div class="summary-grid">
+                <div class="summary-card summary-card-paid">
+                    <p class="summary-label">Total Paid</p>
+                    <p class="summary-value summary-value-success">
+                        <lightning-formatted-number
+                            value={totalPaid}
+                            format-style="currency"
+                            currency-code="EUR"
+                        ></lightning-formatted-number>
+                    </p>
+                </div>
+                <div class="summary-card">
+                    <p class="summary-label">Invoices</p>
+                    <p class="summary-value">{invoiceCount}</p>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <template lwc:if={isLoading}>
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p class="loading-text">Loading invoices...</p>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template lwc:if={error}>
+                <div class="error-banner">
+                    <svg class="error-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>{error}</p>
+                </div>
+            </template>
+
+            <!-- Sync Message -->
+            <template lwc:if={syncMessage}>
+                <div class={syncAlertClass}>
+                    <p>{syncMessage}</p>
+                </div>
+            </template>
+
+            <!-- Invoice Table -->
+            <template lwc:if={hasInvoices}>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Date</th>
+                                <th class="col-amount">Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={formattedInvoices} for:item="inv">
+                                <tr key={inv.Id} class="table-row">
+                                    <td class="cell-name">{inv.Name}</td>
+                                    <td class="cell-date">
+                                        <lightning-formatted-date-time
+                                            value={inv.Invoice_Date__c}
+                                            day="2-digit"
+                                            month="2-digit"
+                                            year="numeric"
+                                        ></lightning-formatted-date-time>
+                                    </td>
+                                    <td class="cell-amount">
+                                        <lightning-formatted-number
+                                            value={inv.Amount__c}
+                                            format-style="currency"
+                                            currency-code="EUR"
+                                        ></lightning-formatted-number>
+                                    </td>
+                                    <td>
+                                        <span class={inv.statusClass}>{inv.Status__c}</span>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+
+            <!-- Empty State -->
+            <template lwc:if={noInvoices}>
+                <div class="empty-state">
+                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <p class="empty-title">No invoices</p>
+                    <p class="empty-text">No invoices found. Try syncing from the billing system.</p>
+                </div>
+            </template>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <button class="btn-sync" onclick={handleSync} disabled={isSyncing}>
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 4v6h-6M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                </svg>
+                <template lwc:if={isSyncing}>Syncing...</template>
+                <template lwc:else>Sync Invoices</template>
+            </button>
+            <button class="btn-close-outlined" onclick={handleClose}>Close</button>
+        </div>
+    </div>
 </template>

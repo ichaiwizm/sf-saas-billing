@@ -1,67 +1,133 @@
 <template>
-    <lightning-card title="Subscription Dashboard" icon-name="standard:contract">
-        <!-- MRR Summary -->
-        <div class="slds-var-p-horizontal_medium slds-var-p-top_small">
-            <div class="slds-grid slds-gutters slds-var-m-bottom_medium">
-                <div class="slds-col slds-size_1-of-3">
-                    <div class="metric-card slds-box slds-theme_shade slds-text-align_center">
-                        <p class="slds-text-title_caps slds-var-m-bottom_xx-small">Total MRR</p>
-                        <p class="slds-text-heading_large metric-value">
-                            <lightning-formatted-number
-                                value={totalMrr}
-                                format-style="currency"
-                                currency-code="EUR"
-                            ></lightning-formatted-number>
-                        </p>
-                    </div>
-                </div>
-                <div class="slds-col slds-size_1-of-3">
-                    <div class="metric-card slds-box slds-theme_shade slds-text-align_center">
-                        <p class="slds-text-title_caps slds-var-m-bottom_xx-small">Active</p>
-                        <p class="slds-text-heading_large metric-value">{activeCount}</p>
-                    </div>
-                </div>
-                <div class="slds-col slds-size_1-of-3">
-                    <div class="metric-card slds-box slds-theme_shade slds-text-align_center">
-                        <p class="slds-text-title_caps slds-var-m-bottom_xx-small">Total</p>
-                        <p class="slds-text-heading_large metric-value">{totalCount}</p>
-                    </div>
-                </div>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-content">
+                <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 14l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1 class="header-title">Subscriptions</h1>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="metrics-grid">
+            <div class="metric-card metric-card-mrr">
+                <p class="metric-label metric-label-light">Monthly Recurring Revenue</p>
+                <p class="metric-value metric-value-light">
+                    <lightning-formatted-number
+                        value={totalMrr}
+                        format-style="currency"
+                        currency-code="EUR"
+                    ></lightning-formatted-number>
+                </p>
+            </div>
+            <div class="metric-card metric-card-active">
+                <p class="metric-label">Active</p>
+                <p class="metric-value metric-value-accent">{activeCount}</p>
+            </div>
+            <div class="metric-card metric-card-total">
+                <p class="metric-label">Total</p>
+                <p class="metric-value">{totalCount}</p>
             </div>
         </div>
 
         <!-- Loading -->
         <template lwc:if={isLoading}>
-            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p class="loading-text">Loading subscriptions...</p>
+            </div>
         </template>
 
         <!-- Error -->
         <template lwc:if={error}>
-            <div class="slds-var-p-around_medium">
-                <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">
-                    <p>{error}</p>
-                </div>
+            <div class="error-banner">
+                <svg class="error-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <p>{error}</p>
             </div>
         </template>
 
-        <!-- Subscription List -->
+        <!-- Subscription Table -->
         <template lwc:if={hasSubscriptions}>
-            <lightning-datatable
-                key-field="Id"
-                data={subscriptions}
-                columns={columns}
-                onrowaction={handleRowAction}
-                hide-checkbox-column
-            ></lightning-datatable>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th class="col-amount">Monthly Amount</th>
+                            <th class="col-action"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={formattedSubscriptions} for:item="sub">
+                            <tr key={sub.Id} class="table-row">
+                                <td class="cell-name">{sub.Name}</td>
+                                <td>
+                                    <span class={sub.statusClass}>{sub.Status__c}</span>
+                                </td>
+                                <td class="cell-date">
+                                    <lightning-formatted-date-time
+                                        value={sub.Start_Date__c}
+                                        day="2-digit"
+                                        month="2-digit"
+                                        year="numeric"
+                                    ></lightning-formatted-date-time>
+                                </td>
+                                <td class="cell-date">
+                                    <template lwc:if={sub.End_Date__c}>
+                                        <lightning-formatted-date-time
+                                            value={sub.End_Date__c}
+                                            day="2-digit"
+                                            month="2-digit"
+                                            year="numeric"
+                                        ></lightning-formatted-date-time>
+                                    </template>
+                                    <template lwc:else>
+                                        <span class="text-secondary">&mdash;</span>
+                                    </template>
+                                </td>
+                                <td class="cell-amount">
+                                    <lightning-formatted-number
+                                        value={sub.Monthly_Amount__c}
+                                        format-style="currency"
+                                        currency-code="EUR"
+                                    ></lightning-formatted-number>
+                                </td>
+                                <td class="cell-action">
+                                    <button
+                                        class="btn-view"
+                                        data-id={sub.Id}
+                                        data-name={sub.Name}
+                                        onclick={handleViewInvoices}
+                                    >
+                                        View Invoices
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
         </template>
 
         <!-- Empty State -->
         <template lwc:if={isEmpty}>
-            <div class="slds-var-p-around_medium slds-text-align_center">
-                <p class="slds-text-color_weak">No subscriptions found for this account.</p>
+            <div class="empty-state">
+                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p class="empty-title">No subscriptions</p>
+                <p class="empty-text">No subscriptions found for this account.</p>
             </div>
         </template>
-    </lightning-card>
+    </div>
 
     <!-- Invoice Viewer Modal -->
     <template lwc:if={selectedSubscriptionId}>

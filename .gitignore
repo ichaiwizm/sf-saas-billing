@@ -5,6 +5,9 @@
 # Salesforce cache
 .sf/
 .sfdx/
+
+# Claude Code
+.claude/
 .localdevserver/
 deploy-options.json
 

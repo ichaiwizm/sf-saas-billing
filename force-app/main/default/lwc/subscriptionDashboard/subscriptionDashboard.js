@@ -1,34 +1,13 @@
 import { LightningElement, api, wire } from "lwc";
 import getSubscriptions from "@salesforce/apex/SubscriptionController.getSubscriptions";
 
-const COLUMNS = [
-    { label: "Number", fieldName: "Name", type: "text" },
-    { label: "Status", fieldName: "Status__c", type: "text" },
-    {
-        label: "Start Date",
-        fieldName: "Start_Date__c",
-        type: "date",
-        typeAttributes: { day: "2-digit", month: "2-digit", year: "numeric" }
-    },
-    {
-        label: "End Date",
-        fieldName: "End_Date__c",
-        type: "date",
-        typeAttributes: { day: "2-digit", month: "2-digit", year: "numeric" }
-    },
-    {
-        label: "Monthly Amount",
-        fieldName: "Monthly_Amount__c",
-        type: "currency",
-        typeAttributes: { currencyCode: "EUR" }
-    },
-    {
-        type: "action",
-        typeAttributes: {
-            rowActions: [{ label: "View Invoices", name: "view_invoices" }]
-        }
-    }
-];
+const STATUS_CLASSES = {
+    Active: "badge badge-active",
+    Draft: "badge badge-draft",
+    Suspended: "badge badge-suspended",
+    Cancelled: "badge badge-cancelled",
+    Expired: "badge badge-expired"
+};
 
 export default class SubscriptionDashboard extends LightningElement {
     @api recordId;
@@ -38,8 +17,6 @@ export default class SubscriptionDashboard extends LightningElement {
     isLoading = true;
     selectedSubscriptionId;
     selectedSubscriptionName;
-
-    columns = COLUMNS;
 
     @wire(getSubscriptions, { accountId: "$recordId" })
     wiredSubscriptions({ error, data }) {
@@ -51,6 +28,13 @@ export default class SubscriptionDashboard extends LightningElement {
             this.error = error.body?.message || "An error occurred loading subscriptions.";
             this.subscriptions = [];
         }
+    }
+
+    get formattedSubscriptions() {
+        return this.subscriptions.map((sub) => ({
+            ...sub,
+            statusClass: STATUS_CLASSES[sub.Status__c] || "badge badge-draft"
+        }));
     }
 
     get totalMrr() {
@@ -75,13 +59,9 @@ export default class SubscriptionDashboard extends LightningElement {
         return !this.isLoading && !this.error && this.subscriptions.length === 0;
     }
 
-    handleRowAction(event) {
-        const action = event.detail.action;
-        const row = event.detail.row;
-        if (action.name === "view_invoices") {
-            this.selectedSubscriptionId = row.Id;
-            this.selectedSubscriptionName = row.Name;
-        }
+    handleViewInvoices(event) {
+        this.selectedSubscriptionId = event.currentTarget.dataset.id;
+        this.selectedSubscriptionName = event.currentTarget.dataset.name;
     }
 
     handleCloseInvoices() {

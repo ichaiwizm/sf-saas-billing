@@ -3,22 +3,12 @@ import getInvoices from "@salesforce/apex/InvoiceController.getInvoices";
 import syncInvoices from "@salesforce/apex/InvoiceController.syncInvoices";
 import { refreshApex } from "@salesforce/apex";
 
-const COLUMNS = [
-    { label: "Invoice #", fieldName: "Name", type: "text" },
-    {
-        label: "Date",
-        fieldName: "Invoice_Date__c",
-        type: "date",
-        typeAttributes: { day: "2-digit", month: "2-digit", year: "numeric" }
-    },
-    {
-        label: "Amount",
-        fieldName: "Amount__c",
-        type: "currency",
-        typeAttributes: { currencyCode: "EUR" }
-    },
-    { label: "Status", fieldName: "Status__c", type: "text" }
-];
+const STATUS_CLASSES = {
+    Paid: "badge badge-paid",
+    Pending: "badge badge-pending",
+    Failed: "badge badge-failed",
+    Draft: "badge badge-draft"
+};
 
 export default class InvoiceViewer extends LightningElement {
     @api subscriptionId;
@@ -30,7 +20,6 @@ export default class InvoiceViewer extends LightningElement {
     isSyncing = false;
     syncMessage;
     syncSuccess = true;
-    columns = COLUMNS;
 
     _wiredInvoicesResult;
 
@@ -45,6 +34,13 @@ export default class InvoiceViewer extends LightningElement {
             this.error = result.error.body?.message || "An error occurred loading invoices.";
             this.invoices = [];
         }
+    }
+
+    get formattedInvoices() {
+        return this.invoices.map((inv) => ({
+            ...inv,
+            statusClass: STATUS_CLASSES[inv.Status__c] || "badge badge-draft"
+        }));
     }
 
     get totalPaid() {
@@ -65,10 +61,10 @@ export default class InvoiceViewer extends LightningElement {
         return !this.isLoading && !this.error && this.invoices.length === 0;
     }
 
-    get syncMessageClass() {
+    get syncAlertClass() {
         return this.syncSuccess
-            ? "slds-notify slds-notify_alert slds-alert_success slds-var-m-bottom_medium"
-            : "slds-notify slds-notify_alert slds-alert_error slds-var-m-bottom_medium";
+            ? "sync-alert sync-alert-success"
+            : "sync-alert sync-alert-error";
     }
 
     async handleSync() {
@@ -84,7 +80,6 @@ export default class InvoiceViewer extends LightningElement {
                 this.syncSuccess = false;
                 this.syncMessage = result.errorMessage || "Sync completed with errors.";
             }
-            // Refresh the invoice list
             await refreshApex(this._wiredInvoicesResult);
         } catch (err) {
             this.syncSuccess = false;
