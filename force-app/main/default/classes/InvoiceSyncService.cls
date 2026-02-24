@@ -14,7 +14,6 @@ public with sharing class InvoiceSyncService {
         @AuraEnabled public Boolean success;
         @AuraEnabled public Integer syncedCount;
         @AuraEnabled public String errorMessage;
-        @AuraEnabled public String rawResponse;
 
         public SyncResult() {
             this.success = true;
@@ -33,12 +32,20 @@ public with sharing class InvoiceSyncService {
         try {
             // 1. Get the subscription's External ID
             // CRUD/FLS enforced at controller layer; sharing rules via 'with sharing'
-            Subscription__c sub = [
+            List<Subscription__c> subs = [
                 SELECT Id, External_Id__c
                 FROM Subscription__c
                 WHERE Id = :subscriptionId
                 LIMIT 1
             ];
+
+            if (subs.isEmpty()) {
+                result.success = false;
+                result.errorMessage = 'Subscription not found.';
+                return result;
+            }
+
+            Subscription__c sub = subs[0];
 
             if (String.isBlank(sub.External_Id__c)) {
                 result.success = false;

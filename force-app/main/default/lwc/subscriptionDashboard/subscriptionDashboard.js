@@ -1,14 +1,6 @@
 import { LightningElement, api, wire } from "lwc";
 import getSubscriptions from "@salesforce/apex/SubscriptionController.getSubscriptions";
 
-const STATUS_BADGE_MAP = {
-    Active: "slds-badge slds-theme_success",
-    Draft: "slds-badge",
-    Suspended: "slds-badge slds-theme_warning",
-    Cancelled: "slds-badge slds-theme_error",
-    Expired: "slds-badge slds-badge_inverse"
-};
-
 const COLUMNS = [
     { label: "Number", fieldName: "Name", type: "text" },
     { label: "Status", fieldName: "Status__c", type: "text" },
@@ -81,10 +73,6 @@ export default class SubscriptionDashboard extends LightningElement {
 
     get isEmpty() {
         return !this.isLoading && !this.error && this.subscriptions.length === 0;
-    }
-
-    getStatusClass(status) {
-        return STATUS_BADGE_MAP[status] || "slds-badge";
     }
 
     handleRowAction(event) {

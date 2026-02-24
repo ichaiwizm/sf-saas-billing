@@ -76,10 +76,16 @@ public with sharing class BillingApiService {
         List<InvoiceWrapper> wrappers =
             (List<InvoiceWrapper>) JSON.deserialize(sanitized, List<InvoiceWrapper>.class);
 
-        // Parse the date strings
+        // Parse the date strings safely
         for (InvoiceWrapper wrapper : wrappers) {
             if (wrapper.date_x != null) {
-                wrapper.invoiceDate = Date.valueOf(wrapper.date_x);
+                try {
+                    wrapper.invoiceDate = Date.valueOf(wrapper.date_x);
+                } catch (Exception e) {
+                    System.debug(LoggingLevel.WARN,
+                        'Invalid date format for invoice ' + wrapper.id + ': ' + wrapper.date_x
+                    );
+                }
             }
         }
 

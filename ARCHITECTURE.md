@@ -90,7 +90,8 @@ Mini CRM solution built on Salesforce for a B2B SaaS company managing subscripti
 - Batch class for daily status transitions (handles millions of records)
 
 ### 4. Security (CRUD/FLS)
-- `WITH SECURITY_ENFORCED` on all SOQL queries
+- `Security.stripInaccessible()` in controllers for graceful FLS enforcement
+- `WITH SECURITY_ENFORCED` on internal service queries
 - `with sharing` keyword on all classes (respects org-wide defaults and sharing rules)
 - Named Credential for external API — no hardcoded endpoints or credentials
 - Permission Set `SaaS_Billing_User` for controlled access
@@ -154,10 +155,8 @@ force-app/main/default/
 ├── tabs/ (2 tabs)
 ├── permissionsets/
 │   └── SaaS_Billing_User.permissionset-meta.xml
-├── namedCredentials/
-│   └── Billing_API.namedCredential-meta.xml
-└── externalCredentials/
-    └── Billing_API.externalCredential-meta.xml
+└── namedCredentials/
+    └── Billing_API.namedCredential-meta.xml
 ```
 
 ## Deployment

@@ -12,6 +12,10 @@
 public with sharing class SubscriptionBatchSchedulable
     implements Database.Batchable<SObject>, Schedulable {
 
+    private static final String STATUS_DRAFT = 'Draft';
+    private static final String STATUS_ACTIVE = 'Active';
+    private static final String STATUS_EXPIRED = 'Expired';
+
     private static final String QUERY =
         'SELECT Id, Status__c, Start_Date__c, End_Date__c ' +
         'FROM Subscription__c ' +
@@ -38,11 +42,11 @@ public with sharing class SubscriptionBatchSchedulable
         List<Subscription__c> toUpdate = new List<Subscription__c>();
 
         for (Subscription__c sub : scope) {
-            if (sub.Status__c == 'Draft' && sub.Start_Date__c <= Date.today()) {
-                sub.Status__c = 'Active';
+            if (sub.Status__c == STATUS_DRAFT && sub.Start_Date__c <= Date.today()) {
+                sub.Status__c = STATUS_ACTIVE;
                 toUpdate.add(sub);
-            } else if (sub.Status__c == 'Active' && sub.End_Date__c < Date.today()) {
-                sub.Status__c = 'Expired';
+            } else if (sub.Status__c == STATUS_ACTIVE && sub.End_Date__c < Date.today()) {
+                sub.Status__c = STATUS_EXPIRED;
                 toUpdate.add(sub);
             }
         }
