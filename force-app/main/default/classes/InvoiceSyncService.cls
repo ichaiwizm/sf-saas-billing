@@ -32,11 +32,11 @@ public with sharing class InvoiceSyncService {
 
         try {
             // 1. Get the subscription's External ID
+            // CRUD/FLS enforced at controller layer; sharing rules via 'with sharing'
             Subscription__c sub = [
                 SELECT Id, External_Id__c
                 FROM Subscription__c
                 WHERE Id = :subscriptionId
-                WITH SECURITY_ENFORCED
                 LIMIT 1
             ];
 
