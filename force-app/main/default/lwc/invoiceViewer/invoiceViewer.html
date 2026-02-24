@@ -1,0 +1,104 @@
+<template>
+    <section
+        role="dialog"
+        tabindex="-1"
+        class="slds-modal slds-fade-in-open slds-modal_large"
+        aria-modal="true"
+        aria-labelledby="invoice-modal-heading"
+    >
+        <div class="slds-modal__container">
+            <!-- Header -->
+            <div class="slds-modal__header">
+                <lightning-button-icon
+                    icon-name="utility:close"
+                    alternative-text="Close"
+                    variant="bare-inverse"
+                    class="slds-modal__close"
+                    onclick={handleClose}
+                ></lightning-button-icon>
+                <h1 id="invoice-modal-heading" class="slds-modal__title slds-hyphenate">
+                    Invoices — {subscriptionName}
+                </h1>
+            </div>
+
+            <!-- Body -->
+            <div class="slds-modal__content slds-var-p-around_medium">
+                <!-- Summary -->
+                <div class="slds-grid slds-gutters slds-var-m-bottom_medium">
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-box slds-theme_shade slds-text-align_center">
+                            <p class="slds-text-title_caps slds-var-m-bottom_xx-small">Total Paid</p>
+                            <p class="slds-text-heading_medium total-paid">
+                                <lightning-formatted-number
+                                    value={totalPaid}
+                                    format-style="currency"
+                                    currency-code="EUR"
+                                ></lightning-formatted-number>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-box slds-theme_shade slds-text-align_center">
+                            <p class="slds-text-title_caps slds-var-m-bottom_xx-small">Invoices</p>
+                            <p class="slds-text-heading_medium">{invoiceCount}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <template lwc:if={isLoading}>
+                    <lightning-spinner alternative-text="Loading invoices" size="small"></lightning-spinner>
+                </template>
+
+                <!-- Error -->
+                <template lwc:if={error}>
+                    <div class="slds-notify slds-notify_alert slds-alert_error slds-var-m-bottom_medium" role="alert">
+                        <p>{error}</p>
+                    </div>
+                </template>
+
+                <!-- Sync result toast -->
+                <template lwc:if={syncMessage}>
+                    <div class={syncMessageClass} role="alert">
+                        <p>{syncMessage}</p>
+                    </div>
+                </template>
+
+                <!-- Invoice Table -->
+                <template lwc:if={hasInvoices}>
+                    <lightning-datatable
+                        key-field="Id"
+                        data={invoices}
+                        columns={columns}
+                        hide-checkbox-column
+                    ></lightning-datatable>
+                </template>
+
+                <!-- Empty State -->
+                <template lwc:if={noInvoices}>
+                    <div class="slds-text-align_center slds-var-p-around_medium">
+                        <p class="slds-text-color_weak">No invoices found. Try syncing from the billing system.</p>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Footer -->
+            <div class="slds-modal__footer">
+                <lightning-button
+                    label="Sync Invoices"
+                    variant="brand"
+                    icon-name="utility:refresh"
+                    onclick={handleSync}
+                    disabled={isSyncing}
+                ></lightning-button>
+                <lightning-button
+                    label="Close"
+                    variant="neutral"
+                    onclick={handleClose}
+                    class="slds-var-m-left_x-small"
+                ></lightning-button>
+            </div>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open" onclick={handleClose}></div>
+</template>

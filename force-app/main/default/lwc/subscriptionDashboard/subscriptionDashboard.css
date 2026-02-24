@@ -1,0 +1,9 @@
+.metric-card {
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.metric-value {
+    color: var(--slds-g-color-brand-base-50, #0070d2);
+    font-weight: 700;
+}

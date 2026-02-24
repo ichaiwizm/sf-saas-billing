@@ -1,0 +1,74 @@
+<template>
+    <lightning-card title="Subscription Dashboard" icon-name="standard:contract">
+        <!-- MRR Summary -->
+        <div class="slds-var-p-horizontal_medium slds-var-p-top_small">
+            <div class="slds-grid slds-gutters slds-var-m-bottom_medium">
+                <div class="slds-col slds-size_1-of-3">
+                    <div class="metric-card slds-box slds-theme_shade slds-text-align_center">
+                        <p class="slds-text-title_caps slds-var-m-bottom_xx-small">Total MRR</p>
+                        <p class="slds-text-heading_large metric-value">
+                            <lightning-formatted-number
+                                value={totalMrr}
+                                format-style="currency"
+                                currency-code="EUR"
+                            ></lightning-formatted-number>
+                        </p>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_1-of-3">
+                    <div class="metric-card slds-box slds-theme_shade slds-text-align_center">
+                        <p class="slds-text-title_caps slds-var-m-bottom_xx-small">Active</p>
+                        <p class="slds-text-heading_large metric-value">{activeCount}</p>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_1-of-3">
+                    <div class="metric-card slds-box slds-theme_shade slds-text-align_center">
+                        <p class="slds-text-title_caps slds-var-m-bottom_xx-small">Total</p>
+                        <p class="slds-text-heading_large metric-value">{totalCount}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <template lwc:if={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+        </template>
+
+        <!-- Error -->
+        <template lwc:if={error}>
+            <div class="slds-var-p-around_medium">
+                <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">
+                    <p>{error}</p>
+                </div>
+            </div>
+        </template>
+
+        <!-- Subscription List -->
+        <template lwc:if={hasSubscriptions}>
+            <lightning-datatable
+                key-field="Id"
+                data={subscriptions}
+                columns={columns}
+                onrowaction={handleRowAction}
+                hide-checkbox-column
+            ></lightning-datatable>
+        </template>
+
+        <!-- Empty State -->
+        <template lwc:if={isEmpty}>
+            <div class="slds-var-p-around_medium slds-text-align_center">
+                <p class="slds-text-color_weak">No subscriptions found for this account.</p>
+            </div>
+        </template>
+    </lightning-card>
+
+    <!-- Invoice Viewer Modal -->
+    <template lwc:if={selectedSubscriptionId}>
+        <c-invoice-viewer
+            subscription-id={selectedSubscriptionId}
+            subscription-name={selectedSubscriptionName}
+            onclose={handleCloseInvoices}
+        ></c-invoice-viewer>
+    </template>
+</template>
