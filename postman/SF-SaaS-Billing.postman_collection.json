@@ -1,0 +1,272 @@
+{
+  "info": {
+    "name": "SF-SaaS-Billing",
+    "description": "Postman collection for the SF-SaaS-Billing Salesforce project.\n\nIncludes:\n- Salesforce OAuth authentication\n- Subscription CRUD operations\n- Invoice CRUD operations\n- Simulated external billing API endpoint",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "instance_url",
+      "value": "https://your-org.my.salesforce.com",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "api_version",
+      "value": "v65.0",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "YOUR_CONNECTED_APP_CLIENT_ID",
+      "type": "string"
+    },
+    {
+      "key": "client_secret",
+      "value": "YOUR_CONNECTED_APP_CLIENT_SECRET",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "YOUR_SF_USERNAME",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "YOUR_SF_PASSWORD_AND_TOKEN",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login (Username-Password Flow)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('access_token', jsonData.access_token);",
+                  "pm.collectionVariables.set('instance_url', jsonData.instance_url);",
+                  "pm.test('Authentication successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{client_id}}" },
+                { "key": "client_secret", "value": "{{client_secret}}" },
+                { "key": "username", "value": "{{username}}" },
+                { "key": "password", "value": "{{password}}" }
+              ]
+            },
+            "url": {
+              "raw": "https://login.salesforce.com/services/oauth2/token",
+              "protocol": "https",
+              "host": ["login", "salesforce", "com"],
+              "path": ["services", "oauth2", "token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscriptions",
+      "item": [
+        {
+          "name": "Get All Subscriptions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{instance_url}}/services/data/{{api_version}}/query/?q=SELECT+Id,Name,Account__c,Status__c,Start_Date__c,End_Date__c,Monthly_Amount__c,External_Id__c+FROM+Subscription__c+ORDER+BY+CreatedDate+DESC",
+              "host": ["{{instance_url}}"],
+              "path": ["services", "data", "{{api_version}}", "query", ""],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "SELECT+Id,Name,Account__c,Status__c,Start_Date__c,End_Date__c,Monthly_Amount__c,External_Id__c+FROM+Subscription__c+ORDER+BY+CreatedDate+DESC"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Account__c\": \"ACCOUNT_ID_HERE\",\n  \"Status__c\": \"Draft\",\n  \"Start_Date__c\": \"2026-03-01\",\n  \"End_Date__c\": \"2027-03-01\",\n  \"Monthly_Amount__c\": 99.00,\n  \"External_Id__c\": \"sub-ext-001\"\n}"
+            },
+            "url": {
+              "raw": "{{instance_url}}/services/data/{{api_version}}/sobjects/Subscription__c",
+              "host": ["{{instance_url}}"],
+              "path": ["services", "data", "{{api_version}}", "sobjects", "Subscription__c"]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{instance_url}}/services/data/{{api_version}}/sobjects/Subscription__c/SUBSCRIPTION_ID_HERE",
+              "host": ["{{instance_url}}"],
+              "path": ["services", "data", "{{api_version}}", "sobjects", "Subscription__c", "SUBSCRIPTION_ID_HERE"]
+            }
+          }
+        },
+        {
+          "name": "Update Subscription Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Status__c\": \"Active\"\n}"
+            },
+            "url": {
+              "raw": "{{instance_url}}/services/data/{{api_version}}/sobjects/Subscription__c/SUBSCRIPTION_ID_HERE",
+              "host": ["{{instance_url}}"],
+              "path": ["services", "data", "{{api_version}}", "sobjects", "Subscription__c", "SUBSCRIPTION_ID_HERE"]
+            }
+          }
+        },
+        {
+          "name": "Upsert Subscription by External ID",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Account__c\": \"ACCOUNT_ID_HERE\",\n  \"Status__c\": \"Draft\",\n  \"Start_Date__c\": \"2026-03-01\",\n  \"End_Date__c\": \"2027-03-01\",\n  \"Monthly_Amount__c\": 99.00\n}"
+            },
+            "url": {
+              "raw": "{{instance_url}}/services/data/{{api_version}}/sobjects/Subscription__c/External_Id__c/sub-ext-001",
+              "host": ["{{instance_url}}"],
+              "path": ["services", "data", "{{api_version}}", "sobjects", "Subscription__c", "External_Id__c", "sub-ext-001"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "item": [
+        {
+          "name": "Get All Invoices",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{instance_url}}/services/data/{{api_version}}/query/?q=SELECT+Id,Name,Subscription__c,Amount__c,Status__c,Invoice_Date__c,External_Id__c+FROM+Invoice__c+ORDER+BY+Invoice_Date__c+DESC",
+              "host": ["{{instance_url}}"],
+              "path": ["services", "data", "{{api_version}}", "query", ""],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "SELECT+Id,Name,Subscription__c,Amount__c,Status__c,Invoice_Date__c,External_Id__c+FROM+Invoice__c+ORDER+BY+Invoice_Date__c+DESC"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Invoices by Subscription",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{instance_url}}/services/data/{{api_version}}/query/?q=SELECT+Id,Name,Amount__c,Status__c,Invoice_Date__c,External_Id__c+FROM+Invoice__c+WHERE+Subscription__c='SUBSCRIPTION_ID_HERE'+ORDER+BY+Invoice_Date__c+DESC",
+              "host": ["{{instance_url}}"],
+              "path": ["services", "data", "{{api_version}}", "query", ""],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "SELECT+Id,Name,Amount__c,Status__c,Invoice_Date__c,External_Id__c+FROM+Invoice__c+WHERE+Subscription__c='SUBSCRIPTION_ID_HERE'+ORDER+BY+Invoice_Date__c+DESC"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Subscription__c\": \"SUBSCRIPTION_ID_HERE\",\n  \"Amount__c\": 99.00,\n  \"Status__c\": \"Pending\",\n  \"Invoice_Date__c\": \"2026-03-01\",\n  \"External_Id__c\": \"inv-001\"\n}"
+            },
+            "url": {
+              "raw": "{{instance_url}}/services/data/{{api_version}}/sobjects/Invoice__c",
+              "host": ["{{instance_url}}"],
+              "path": ["services", "data", "{{api_version}}", "sobjects", "Invoice__c"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "External Billing API (Simulated)",
+      "description": "Simulated external billing API endpoint. In production, this would be a real external service. For testing purposes, these requests demonstrate the expected contract.",
+      "item": [
+        {
+          "name": "Get Invoices by Subscription External ID",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "https://billing-api.example.com/invoices?subscriptionExternalId=sub-ext-001",
+              "protocol": "https",
+              "host": ["billing-api", "example", "com"],
+              "path": ["invoices"],
+              "query": [
+                {
+                  "key": "subscriptionExternalId",
+                  "value": "sub-ext-001"
+                }
+              ]
+            },
+            "description": "Expected response:\n```json\n[\n  {\n    \"id\": \"inv-001\",\n    \"amount\": 49.99,\n    \"status\": \"paid\",\n    \"date\": \"2026-01-10\"\n  },\n  {\n    \"id\": \"inv-002\",\n    \"amount\": 49.99,\n    \"status\": \"pending\",\n    \"date\": \"2026-02-10\"\n  }\n]\n```"
+          }
+        }
+      ]
+    }
+  ]
+}
