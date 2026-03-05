@@ -1,0 +1,46 @@
+<template>
+    <lightning-card title="Service Requests Dashboard">
+
+        <!-- Filtre par Priority -->
+        <div class="slds-m-around_medium">
+            <lightning-combobox
+                label="Filter by Priority"
+                value={selectedPriority}
+                options={priorityOptions}
+                onchange={handlePriorityChange}>
+            </lightning-combobox>
+        </div>
+
+        <!-- Tableau -->
+        <lightning-datatable
+            key-field="Id"
+            data={filteredRequests}
+            columns={columns}
+            onrowaction={handleRowAction}>
+        </lightning-datatable>
+
+        <!-- Modal pour les notes de résolution -->
+        <template if:true={showModal}>
+            <section class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <h2>Resolution Notes</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning-textarea
+                            label="Enter resolution notes"
+                            value={resolutionNotes}
+                            onchange={handleNotesChange}>
+                        </lightning-textarea>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Cancel" onclick={closeModal}></lightning-button>
+                        <lightning-button label="Close Request" variant="brand" onclick={confirmClose}></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+
+    </lightning-card>
+</template>
