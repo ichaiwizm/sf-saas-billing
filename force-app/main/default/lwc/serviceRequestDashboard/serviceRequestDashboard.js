@@ -3,9 +3,10 @@ import getOpenRequests from '@salesforce/apex/ServiceRequestController.getOpenRe
 import closeRequest from '@salesforce/apex/ServiceRequestController.closeRequest';
 import { refreshApex } from '@salesforce/apex';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { NavigationMixin } from 'lightning/navigation';
 
 const COLUMNS = [
-    { label: 'Request Number', fieldName: 'Name' },
+    { label: 'Request Number', fieldName: 'recordUrl', type: 'url', typeAttributes: { label: { fieldName: 'Name' }, target: '_self' } },
     { label: 'Subject', fieldName: 'Subject__c' },
     { label: 'Priority', fieldName: 'Priority__c' },
     { label: 'Status', fieldName: 'Status__c' },
@@ -18,11 +19,11 @@ const COLUMNS = [
     }
 ];
 
-export default class ServiceRequestDashboard extends LightningElement {
+export default class ServiceRequestDashboard extends NavigationMixin(LightningElement) {
 
-    requests = [];
+    @track requests = [];
     columns = COLUMNS;
-    selectedPriority = '';
+    @track selectedPriority = '';
     showModal = false;
     resolutionNotes = '';
     selectedRequestId = null;
@@ -41,7 +42,8 @@ export default class ServiceRequestDashboard extends LightningElement {
         if (result.data) {
             this.requests = result.data.map(sr => ({
                 ...sr,
-                AgentName: sr.Assigned_Agent__r ? sr.Assigned_Agent__r.Name : ''
+                AgentName: sr.Assigned_Agent__r ? sr.Assigned_Agent__r.Name : '',
+                recordUrl: '/' + sr.Id
             }));
         }
     }
